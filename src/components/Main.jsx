@@ -1,20 +1,20 @@
-import React from "react";
-import ReactMarkdown from "react-markdown";
+import React, { memo, useState } from "react";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 function Main({ activeNote, onUpdateNote }) {
-    const onEditField = (key, value) => {
-        onUpdateNote({
-            ...activeNote,
-            [key]: value,
-            lastModified: Date.now()
-        })
-    }
+  const [state, setState] = useState("");
+  const onEditField = (key, value) => {
+    onUpdateNote({
+      ...activeNote,
+      [key]: value,
+      lastModified: Date.now(),
+    });
+  };
 
-    if (!activeNote) {
-        return (
-            <div className='no-active-note'>Заметок нет</div>
-        )
-    }
+  if (!activeNote) {
+    return <div className="no-active-note">Заметок нет</div>;
+  }
 
   return (
     <div className="app-main">
@@ -26,20 +26,24 @@ function Main({ activeNote, onUpdateNote }) {
           onChange={(e) => onEditField("title", e.target.value)}
           autoFocus
         />
-        <textarea
-          id="body"
-          value={activeNote.body}
-          onChange={(e) => onEditField('body', e.target.value)}
 
-          placeholder="Пиши свою заметку здесь"
+        <CKEditor
+          editor={ClassicEditor}
+          data={`<p>${activeNote.body}</p>`}
+          onChange={(_, data) => {
+            setState(data.getData());
+          }}
         />
       </div>
       <div className="app-main-note-preview">
         <h1 className="preview-title">{activeNote.title}</h1>
-        <ReactMarkdown className="markdown-preview">{activeNote.body}</ReactMarkdown>
+        <div
+          className="preview-body"
+          dangerouslySetInnerHTML={{ __html: state }}
+        />
       </div>
     </div>
   );
 }
 
-export default Main;
+export default memo(Main);
